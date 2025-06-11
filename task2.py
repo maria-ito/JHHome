@@ -78,12 +78,13 @@ class OrderBook:
     def __init__(self):
         self.buy_list = []
         self.sell_list = []
-        self.trade_list = []
         self.order_map = {}
 
     def add_order(self, order, match_bool):
         if match_bool:
-            self.match_order(order, True)
+            order = self.match_order(order, True)
+        if order.quantity == 0:
+            return
 
         if order.price < 0:
             raise ValueError('Price must be positive.')
@@ -119,43 +120,34 @@ class OrderBook:
         else:
             self.sell_list = [x for x in self.sell_list if x[1] != order_id]
 
-    def match_order(self, order, from_add):
-
+    def _execute_match(self, order, add_bool):
         temp = []
         if order.type == 'buy':
-            while self.sell_list and order.quantity > 0:
-                best_order = heapq.heappop(self.sell_list)
-                if -best_order[0] <= order.price:
-                    if best_order[2] > order.quantity:
-                        best_order[2] -= order.quantity
-                        order.quantity = 0
-                        temp.append(best_order)
-                    elif best_order[2] < order.quantity:
-                        order.quantity -= best_order[2]
-                        best_order[2] = 0
-                else:
-                    temp.append(best_order)
-            if order.quantity > 0:
-                heapq.heappush(self.sell_list, [-order.price, order.order_id, order.quantity])
+            temp_list = self.sell_list
         else:
-            while self.buy_list and order.quantity > 0:
-                best_order = heapq.heappop(self.buy_list)
-                if best_order[0] <= order.price:
-                    if best_order[2] > order.quantity:
-                        best_order[2] -= order.quantity
-                        order.quantity = 0
-                        temp.append(best_order)
-                    elif best_order[2] < order.quantity:
-                        order.quantity -= best_order[2]
-                        best_order[2] = 0
-                else:
+            temp_list = self.buy_list
+        while temp_list and order.quantity > 0:
+            best_order = heapq.heappop(temp_list)
+            multiplier = -1 if order.type == 'buy' else 1
+            if multiplier * best_order[0] <= order.price:
+                if best_order[2] > order.quantity:
+                    best_order[2] -= order.quantity
+                    order.quantity = 0
                     temp.append(best_order)
-            if not from_add and order.quantity > 0:
-                heapq.heappush(self.sell_list, [-order.price, order.order_id, order.quantity])
+                elif best_order[2] < order.quantity:
+                    order.quantity -= best_order[2]
+                    best_order[2] = 0
+            else:
+                temp.append(best_order)
+        if not add_bool and order.quantity > 0:
+            heapq.heappush(temp_list, [-order.price, order.order_id, order.quantity])
+        return temp_list, temp, order
+
+    def match_order(self, order, from_add):
+        self.sell_list, temp, order = self._execute_match(order, from_add)
         while temp:
             heapq.heappush(self.sell_list, temp.pop())
-
-        print('')
+        return order
 
     def print_order_book(self):
         print('BUY ORDERS:')
@@ -208,17 +200,13 @@ if __name__ == '__main__':
     book.add_order(Order({"type": "BUY", "price": 108, "quantity": 2}), True)
     book.match_order(Order({"type": "BUY", "price": 102, "quantity": 2}), False)
 
-
-    book.add_order(Order({"type": "BUY", "price": 102, "quantity": 6}))
-    book.add_order(Order({"type": "BUY", "price": 101, "quantity": 3}))
-    book.add_order(Order({"type": "SELL", "price": 104, "quantity": 2}))
-    book.add_order(Order({"type": "SELL", "price": 103, "quantity": 4}))
-    book.add_order(Order({"type": "SELL", "price": 103, "quantity": 3}))
     book.cancel_order(list(book.order_map.keys())[0])
     book.cancel_order(list(book.order_map.keys())[-1])
     book.print_order_book()
 
-    print('Multiple instrument')
+
+
+    print('Multiple instruments')
     # Multiple instruments
     book = InstrumentOrderBook()
     book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 1}))
