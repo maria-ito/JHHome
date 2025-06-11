@@ -29,6 +29,8 @@ Price: 103, Quantity: 4
 Price: 104, Quantity: 2
 ```
 '''
+
+
 import heapq
 import uuid
 
@@ -39,7 +41,7 @@ class Order:
         self.price = order_dict['price']
         self.quantity = order_dict['quantity']
         self.type = order_dict['type'].lower()
-        self.instrument = order_dict['instrument'] if 'instrument' in order_dict else None
+        self.instrument = order_dict.get('instrument', None)
         self.order_id = str(uuid.uuid4())
 
 
