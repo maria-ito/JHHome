@@ -86,6 +86,7 @@ class OrderBook:
             self.sell_list = [x for x in self.sell_list if x[1] != order_id]
 
     def print_order_book(self):
+        # TODO: I think I need to return something rather than print
         print('BUY ORDERS:')
         for price, _, quantity in sorted(self.buy_list):
             if quantity > 0:

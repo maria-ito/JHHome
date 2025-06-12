@@ -29,37 +29,7 @@ Price: 103, Quantity: 4
 Price: 104, Quantity: 2
 ```
 '''
-'''
-### Stage 1: Basic Order Book
 
-- You will need to handle two types of orders: BUY and SELL.
-- Each order will have a price and quantity.
-
-__Input__:
-
-You receive the following orders:
-
-```
-{"type": "BUY", "price": 102, "quantity": 5}
-{"type": "SELL", "price": 104, "quantity": 2}
-{"type": "BUY", "price": 101, "quantity": 3}
-{"type": "SELL", "price": 103, "quantity": 4}
-```
-
-__Expected Output__:
-
-After adding these orders, the state of the order book should be printed as follows:
-
-```
-BUY ORDERS:
-Price: 102, Quantity: 5
-Price: 101, Quantity: 3
-
-SELL ORDERS:
-Price: 103, Quantity: 4
-Price: 104, Quantity: 2
-```
-'''
 import heapq
 import uuid
 
@@ -102,20 +72,20 @@ class OrderBook:
 
     def _add_to_map(self, order):
         self.order_map[order.order_id] = order
-        print('')
 
     def cancel_order(self, order_id):
+        # TODO: expand this, to accommodate trades
         if order_id in self.order_map:
             print(f'Order_map: {self.order_map}')
             order = self.order_map.pop(order_id)
-            self._delete_from_map(order, order_id)
+            self._delete_from_list(order, order_id)
             print(f'Order {order_id} cancelled.')
             print(f'Order_map: {self.order_map}')
 
         else:
             raise KeyError('Order ID unavailable.')
 
-    def _delete_from_map(self, order, order_id):
+    def _delete_from_list(self, order, order_id):
         if order.type == 'buy':
             self.buy_list = [x for x in self.buy_list if x[1] != order_id]
         else:
@@ -131,6 +101,7 @@ class OrderBook:
             best_order = heapq.heappop(temp_list)
             multiplier = -1 if order.type == 'buy' else 1
             if multiplier * best_order[0] <= order.price:
+
                 if best_order[2] >= order.quantity:
                     best_order[2] -= order.quantity
                     order.quantity = 0
@@ -169,30 +140,30 @@ class OrderBook:
                 print(f'Price: {price}, Quantity: {quantity}')
 
 
-class InstrumentOrderBook(OrderBook):
-    def __init__(self):
-        super().__init__()
-        self.instrument_order_map = {}
-
-    def add_order_instrument(self, order):
-        if not order.instrument:
-            raise KeyError('Missing instrument type in order.')
-        super().add_order(order, False)
-        if order.instrument not in self.instrument_order_map:
-            self.instrument_order_map[order.instrument] = {}
-        self.instrument_order_map[order.instrument][order.order_id] = self.order_map[order.order_id]
-
-    def cancel_order_instrument(self, order_id):
-        for instrument in (self.instrument_order_map.keys()):
-
-            if order_id in self.instrument_order_map[instrument]:
-                print(f'Instrument_order_map: {self.order_map}')
-                order = self.instrument_order_map[instrument].pop(order_id)
-                self._delete_from_map(order, order_id)
-                print(f'Order {order_id} cancelled.')
-                print(f'Instrument_order_map: {self.order_map}')
-                return
-        raise KeyError('Order ID unavailable.')
+# class InstrumentOrderBook(OrderBook):
+#     def __init__(self):
+#         super().__init__()
+#         self.instrument_order_map = {}
+#
+#     def add_order_instrument(self, order):
+#         if not order.instrument:
+#             raise KeyError('Missing instrument type in order.')
+#         super().add_order(order, False)
+#         if order.instrument not in self.instrument_order_map:
+#             self.instrument_order_map[order.instrument] = {}
+#         self.instrument_order_map[order.instrument][order.order_id] = self.order_map[order.order_id]
+#
+#     def cancel_order_instrument(self, order_id):
+#         for instrument in (self.instrument_order_map.keys()):
+#
+#             if order_id in self.instrument_order_map[instrument]:
+#                 print(f'Instrument_order_map: {self.order_map}')
+#                 order = self.instrument_order_map[instrument].pop(order_id)
+#                 self._delete_from_map(order, order_id)
+#                 print(f'Order {order_id} cancelled.')
+#                 print(f'Instrument_order_map: {self.order_map}')
+#                 return
+#         raise KeyError('Order ID unavailable.')
 
 
 if __name__ == '__main__':

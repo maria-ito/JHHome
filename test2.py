@@ -25,6 +25,17 @@ class TestOrderBook(unittest.TestCase):
         self._run_test_list(book)
         self._run_test_map(book)
 
+    def test_match_order(self):
+        book = OrderBook()
+
+        book.add_order(Order({"type": "SELL", "price": 103, "quantity": 4}), False)
+        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
+        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}), False)
+        book.match_order(Order({"type": "BUY", "price": 108, "quantity": 4}), False)
+
+        self._run_test_list(book)
+        self._run_test_map(book)
+
     def test_cancel_buy_order(self):
         book = OrderBook()
 
