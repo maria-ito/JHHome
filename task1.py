@@ -34,7 +34,7 @@ Price: 104, Quantity: 2
 import heapq
 import uuid
 
-from collections import defaultdict
+from collections import OrderedDict
 
 class Order:
     def __init__(self, order_dict):
@@ -49,7 +49,7 @@ class OrderBook:
     def __init__(self):
         self.buy_list = []
         self.sell_list = []
-        self.order_map = {}
+        self.order_map = OrderedDict()
 
     def add_order(self, order):
         if order.price < 0:
@@ -72,15 +72,14 @@ class OrderBook:
         if order_id in self.order_map:
             print(f'Order_map: {self.order_map}')
             order = self.order_map.pop(order_id)
-            # order.quantity = 0
-            self._delete_from_map(order, order_id)
+            self._delete_from_list(order, order_id)
             print(f'Order {order_id} cancelled.')
             print(f'Order_map: {self.order_map}')
 
         else:
             raise KeyError('Order ID unavailable.')
 
-    def _delete_from_map(self, order, order_id):
+    def _delete_from_list(self, order, order_id):
         if order.type == 'buy':
             self.buy_list = [x for x in self.buy_list if x[1] != order_id]
         else:
@@ -97,30 +96,30 @@ class OrderBook:
                 print(f'Price: {price}, Quantity: {quantity}')
 
 
-class InstrumentOrderBook(OrderBook):
-    def __init__(self):
-        super().__init__()
-        self.instrument_order_map = {}
-
-    def add_order_instrument(self, order):
-        if not order.instrument:
-            raise KeyError('Missing instrument type in order.')
-        super().add_order(order)
-        if order.instrument not in self.instrument_order_map:
-            self.instrument_order_map[order.instrument] = {}
-        self.instrument_order_map[order.instrument][order.order_id] = self.order_map[order.order_id]
-
-    def cancel_order_instrument(self, order_id):
-        for instrument in (self.instrument_order_map.keys()):
-
-            if order_id in self.instrument_order_map[instrument]:
-                print(f'Instrument_order_map: {self.order_map}')
-                order = self.instrument_order_map[instrument].pop(order_id)
-                self._delete_from_map(order, order_id)
-                print(f'Order {order_id} cancelled.')
-                print(f'Instrument_order_map: {self.order_map}')
-                return
-        raise KeyError('Order ID unavailable.')
+# class InstrumentOrderBook(OrderBook):
+#     def __init__(self):
+#         super().__init__()
+#         self.instrument_order_map = {}
+#
+#     def add_order_instrument(self, order):
+#         if not order.instrument:
+#             raise KeyError('Missing instrument type in order.')
+#         super().add_order(order)
+#         if order.instrument not in self.instrument_order_map:
+#             self.instrument_order_map[order.instrument] = {}
+#         self.instrument_order_map[order.instrument][order.order_id] = self.order_map[order.order_id]
+#
+#     def cancel_order_instrument(self, order_id):
+#         for instrument in (self.instrument_order_map.keys()):
+#
+#             if order_id in self.instrument_order_map[instrument]:
+#                 print(f'Instrument_order_map: {self.order_map}')
+#                 order = self.instrument_order_map[instrument].pop(order_id)
+#                 self._delete_from_map(order, order_id)
+#                 print(f'Order {order_id} cancelled.')
+#                 print(f'Instrument_order_map: {self.order_map}')
+#                 return
+#         raise KeyError('Order ID unavailable.')
 
 
 if __name__ == '__main__':
@@ -138,18 +137,18 @@ if __name__ == '__main__':
     book.cancel_order(list(book.order_map.keys())[-1])
     book.print_order_book()
 
-    print('Multiple instrument')
-    # Multiple instruments
-    book = InstrumentOrderBook()
-    book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 1}))
-    book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 5}))
-    book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 6}))
-    book.add_order_instrument(Order({"type": "BUY", "instrument": "FX", "price": 101, "quantity": 3}))
-    book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 3}))
-    book.add_order_instrument(Order({"type": "SELL", "instrument": "EQ", "price": 104, "quantity": 2}))
-    book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 4}))
-    book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 7}))
-    book.cancel_order_instrument(list(book.instrument_order_map['EQ'].keys())[0])
-    book.cancel_order_instrument(list(book.instrument_order_map['FX'].keys())[0])
-    book.print_order_book()
-
+    # print('Multiple instrument')
+    # # Multiple instruments
+    # book = InstrumentOrderBook()
+    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 1}))
+    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 5}))
+    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 6}))
+    # book.add_order_instrument(Order({"type": "BUY", "instrument": "FX", "price": 101, "quantity": 3}))
+    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 3}))
+    # book.add_order_instrument(Order({"type": "SELL", "instrument": "EQ", "price": 104, "quantity": 2}))
+    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 4}))
+    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 7}))
+    # book.cancel_order_instrument(list(book.instrument_order_map['EQ'].keys())[0])
+    # book.cancel_order_instrument(list(book.instrument_order_map['FX'].keys())[0])
+    # book.print_order_book()
+    #
