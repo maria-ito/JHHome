@@ -50,12 +50,13 @@ class OrderBook:
         self.buy_list = []
         self.sell_list = []
         self.order_map = OrderedDict()
+        self.trade_map = OrderedDict()
 
     def add_order(self, order, match_bool):
         if match_bool:
             order = self.match_order(order, True)
-        if order.quantity == 0:
-            return
+        # if order.quantity == 0:
+        #     return
 
         if order.price < 0:
             raise ValueError('Price must be positive.')
@@ -71,6 +72,8 @@ class OrderBook:
         self._add_to_map(order)
 
     def _add_to_map(self, order):
+        if order.type == 'sell':
+            order.price *= -1
         self.order_map[order.order_id] = order
 
     def cancel_order(self, order_id):
@@ -79,11 +82,19 @@ class OrderBook:
             print(f'Order_map: {self.order_map}')
             order = self.order_map.pop(order_id)
             self._delete_from_list(order, order_id)
+            # self._cancel_update_trade(order)
             print(f'Order {order_id} cancelled.')
             print(f'Order_map: {self.order_map}')
 
         else:
             raise KeyError('Order ID unavailable.')
+
+    # def _cancel_update_trade(self, order):
+    #     for local_trade in self.trade_map:
+    #         if order.order_id == local_trade['buy']:
+    #             if local_trade['buy'] in self.order_map
+
+
 
     def _delete_from_list(self, order, order_id):
         if order.type == 'buy':
@@ -99,23 +110,38 @@ class OrderBook:
             temp_list = self.buy_list
         while temp_list and order.quantity > 0:
             best_order = heapq.heappop(temp_list)
-            multiplier = -1 if order.type == 'buy' else 1
-            if multiplier * best_order[0] <= order.price:
-
+            if order.type == 'buy':
+                multiplier = -1
+                buy_key = order.order_id
+                sell_key = best_order[1]
+            else:
+                multiplier = 1
+                buy_key = best_order[1]
+                sell_key = order.order_id
+            # A match occurs when a buy order's price is equal to or higher than a sell order's price.
+            if best_order[0] >= multiplier * order.price:
+                local_quantity = min(best_order[2], order.quantity)
                 if best_order[2] >= order.quantity:
                     best_order[2] -= order.quantity
                     order.quantity = 0
-                    if best_order[2] > 0:
-                        temp.append(best_order)
-                    else:
-                        self.order_map.pop(best_order[1])
+
+                    temp.append(best_order)
+                    self.order_map[best_order[1]].quantity = best_order[2]
                 elif best_order[2] < order.quantity:
                     order.quantity -= best_order[2]
                     best_order[2] = 0
+                trade_id = str(uuid.uuid4())
+                local_trade = {
+                    'buy': buy_key,
+                    'sell': sell_key,
+                    'quantity': local_quantity
+                }
+                self.trade_map[trade_id] = local_trade
             else:
                 temp.append(best_order)
         if not add_bool and order.quantity > 0:
             heapq.heappush(temp_list, [-order.price, order.order_id, order.quantity])
+            self._add_to_map(order)
         return temp_list, temp, order
 
     def match_order(self, order, from_add):
