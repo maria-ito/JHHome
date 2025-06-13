@@ -77,24 +77,21 @@ class OrderBook:
         self.order_map[order.order_id] = order
 
     def cancel_order(self, order_id):
-        # TODO: expand this, to accommodate trades
         if order_id in self.order_map:
             print(f'Order_map: {self.order_map}')
             order = self.order_map.pop(order_id)
+            self._check_trade(order)
             self._delete_from_list(order, order_id)
-            # self._cancel_update_trade(order)
             print(f'Order {order_id} cancelled.')
             print(f'Order_map: {self.order_map}')
 
         else:
             raise KeyError('Order ID unavailable.')
 
-    # def _cancel_update_trade(self, order):
-    #     for local_trade in self.trade_map:
-    #         if order.order_id == local_trade['buy']:
-    #             if local_trade['buy'] in self.order_map
-
-
+    def _check_trade(self, order):
+        for local_trade in self.trade_map:
+            if order.order_id in list(self.trade_map[local_trade].values()):
+                raise Warning('Not possible to cancel, trade has taken place.')
 
     def _delete_from_list(self, order, order_id):
         if order.type == 'buy':
