@@ -52,7 +52,7 @@ class OrderBook:
         self.order_map = OrderedDict()
         self.trade_map = OrderedDict()
 
-    def add_order(self, order, match_bool):
+    def add_order(self, order, match_bool=False):
         if match_bool:
             order = self.match_order(order, True)
         # if order.quantity == 0:
@@ -141,7 +141,7 @@ class OrderBook:
             self._add_to_map(order)
         return temp_list, temp, order
 
-    def match_order(self, order, from_add):
+    def match_order(self, order, from_add=False):
         if order.type == 'buy':
             self.sell_list, temp, order = self._execute_match(order, from_add)
             while temp:

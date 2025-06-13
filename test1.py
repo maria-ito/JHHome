@@ -1,6 +1,6 @@
 import unittest
 
-from task1 import *
+from task2 import *
 
 
 class TestOrderBook(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestOrderBook(unittest.TestCase):
         self.assertEqual(bookobj.buy_list[0][0], 102)
         self.assertEqual(bookobj.buy_list[0][2], 7)
 
-        self.assertEqual(bookobj.sell_list[0][0], 109)
+        self.assertEqual(bookobj.sell_list[0][0], -109)
         self.assertEqual(bookobj.sell_list[0][2], 6)
 
     def _run_test_map(self, bookobj):

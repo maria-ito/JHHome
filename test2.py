@@ -7,10 +7,10 @@ class TestOrderBook(unittest.TestCase):
     def test_add_order(self):
         book = OrderBook()
 
-        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
-        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}), False)
-        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 2}), False)
-        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 6}), False)
+        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}))
+        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}))
+        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 2}))
+        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 6}))
 
         book.sell_list.sort()
         book.buy_list.sort()
@@ -20,9 +20,9 @@ class TestOrderBook(unittest.TestCase):
     def test_add_order_match(self):
         book = OrderBook()
 
-        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
-        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 7}), False)
-        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 2}), False)
+        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}))
+        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 7}))
+        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 2}))
 
         book.add_order(Order({"type": "BUY", "price": 110, "quantity": 2}), True)
 
@@ -34,10 +34,10 @@ class TestOrderBook(unittest.TestCase):
     def test_match_order(self):
         book = OrderBook()
 
-        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
-        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}), False)
-        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 4}), False)
-        book.match_order(Order({"type": "BUY", "price": 100, "quantity": 4}), False)
+        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}))
+        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}))
+        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 4}))
+        book.match_order(Order({"type": "BUY", "price": 100, "quantity": 4}))
 
         self._run_test_list(book)
         self._run_test_map(book)
@@ -45,11 +45,11 @@ class TestOrderBook(unittest.TestCase):
     def test_cancel_buy_order(self):
         book = OrderBook()
 
-        book.add_order(Order({"type": "BUY", "price": 106, "quantity": 3}), False)
-        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
-        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}), False)
-        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 3}), False)
-        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 9}), False)
+        book.add_order(Order({"type": "BUY", "price": 106, "quantity": 3}))
+        book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}))
+        book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}))
+        book.add_order(Order({"type": "BUY", "price": 110, "quantity": 3}))
+        book.add_order(Order({"type": "SELL", "price": 101, "quantity": 9}))
         book.cancel_order(list(book.order_map.keys())[0])
 
         book.sell_list.sort()
