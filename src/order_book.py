@@ -259,7 +259,3 @@ if __name__ == '__main__':
     book3.add_order(Order({"type": "BUY", "price": 1550, "quantity": 3, "contract": "GCZ4 Comdty"}), True)
     book3.add_order(Order({"type": "SELL", "price": 1550, "quantity": 1, "contract": "GCZ4 Comdty"}), True)
     book3.print_order_book()
-
-
-
-

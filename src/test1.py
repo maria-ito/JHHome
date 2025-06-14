@@ -4,7 +4,7 @@ Tests designed for task 1.
 
 import unittest
 
-from task2 import *
+from order_book import *
 
 
 class TestOrderBook(unittest.TestCase):
