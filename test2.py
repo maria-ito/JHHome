@@ -39,6 +39,8 @@ class TestOrderBook(unittest.TestCase):
         book.add_order(Order({"type": "SELL", "price": 101, "quantity": 4}))
         book.match_order(Order({"type": "BUY", "price": 100, "quantity": 4}))
 
+        book.sell_list.sort()
+        book.buy_list.sort()
         self._run_test_list(book)
         self._run_test_map(book)
 

@@ -10,6 +10,19 @@ class TestOrderBook(unittest.TestCase):
         book.add_order(Order({"type": "BUY", "price": 102, "quantity": 7}))
         book.add_order(Order({"type": "SELL", "price": 109, "quantity": 6}))
 
+        book.sell_list.sort()
+        book.buy_list.sort()
+        self._run_test_list(book)
+        self._run_test_map(book)
+
+    def test_add_order_instrument(self):
+        book = OrderBook()
+
+        book.add_order(Order({"type": "BUY", "price": 102, "quantity": 7, "instrument": 'EQ'}))
+        book.add_order(Order({"type": "SELL", "price": 109, "quantity": 6, "instrument": 'FI'}))
+
+        book.sell_list.sort()
+        book.buy_list.sort()
         self._run_test_list(book)
         self._run_test_map(book)
 
@@ -25,6 +38,8 @@ class TestOrderBook(unittest.TestCase):
 
         book.cancel_order(list(book.order_map.keys())[0])
 
+        book.sell_list.sort()
+        book.buy_list.sort()
         self._run_test_list(book)
         self._run_test_map(book)
 

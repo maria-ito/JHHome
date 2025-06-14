@@ -33,8 +33,9 @@ Price: 104, Quantity: 2
 import heapq
 import uuid
 
+from datetime import date
 from collections import OrderedDict
-
+from settings import *
 
 class Order:
     def __init__(self, order_dict):
@@ -43,6 +44,15 @@ class Order:
         self.type = order_dict['type'].lower()
         self.instrument = order_dict.get('instrument', None)
         self.order_id = str(uuid.uuid4())
+
+        contract = order_dict.get('contract', None)
+        if contract:
+            contract = contract.split()
+            self.product = product_mapping[contract[0][:-2].upper()]
+            self.exp_date = date(int(f'202{contract[0][-1]}'), month_mapping[contract[0][-2].upper()], 1)
+            self.market = contract[1]
+        else:
+            self.product = self.exp_date = self.market = None
 
 
 class OrderBook:
@@ -55,16 +65,26 @@ class OrderBook:
     def add_order(self, order, match_bool=False):
         if match_bool:
             order = self.match_order(order, True)
-        # if order.quantity == 0:
-        #     return
 
         if order.price < 0:
             raise ValueError('Price must be positive.')
         if order.type == 'buy':
-            heapq.heappush(self.buy_list, [order.price, order.order_id, order.quantity])
+            heapq.heappush(self.buy_list,
+                           [order.price,
+                            order.order_id,
+                            order.quantity,
+                            order.product,
+                            order.exp_date,
+                            order.instrument])
             print(f'Buy list: {self.buy_list}')
         elif order.type == 'sell':
-            heapq.heappush(self.sell_list, [-order.price, order.order_id, order.quantity])
+            heapq.heappush(self.sell_list,
+                           [-order.price,
+                            order.order_id,
+                            order.quantity,
+                            order.product,
+                            order.exp_date,
+                            order.instrument])
             print(f'Sell list: {self.sell_list}')
         else:
             raise KeyError('Order type not available.')
@@ -116,7 +136,13 @@ class OrderBook:
                 buy_key = best_order[1]
                 sell_key = order.order_id
             # A match occurs when a buy order's price is equal to or higher than a sell order's price.
-            if best_order[0] >= multiplier * order.price:
+            if (best_order[0] >= multiplier * order.price) or \
+                    ((best_order[0] >= multiplier * order.price) and
+                    (best_order[5] == order.instrument)) or \
+                    ((best_order[0] >= multiplier * order.price)  and
+                    (best_order[3] == order.product) and
+                    (best_order[4] == order.exp_date)):
+
                 local_quantity = min(best_order[2], order.quantity)
                 if best_order[2] >= order.quantity:
                     best_order[2] -= order.quantity
@@ -161,32 +187,6 @@ class OrderBook:
         for price, _, quantity in sorted(self.sell_list):
             if quantity > 0:
                 print(f'Price: {price}, Quantity: {quantity}')
-
-
-# class InstrumentOrderBook(OrderBook):
-#     def __init__(self):
-#         super().__init__()
-#         self.instrument_order_map = {}
-#
-#     def add_order_instrument(self, order):
-#         if not order.instrument:
-#             raise KeyError('Missing instrument type in order.')
-#         super().add_order(order, False)
-#         if order.instrument not in self.instrument_order_map:
-#             self.instrument_order_map[order.instrument] = {}
-#         self.instrument_order_map[order.instrument][order.order_id] = self.order_map[order.order_id]
-#
-#     def cancel_order_instrument(self, order_id):
-#         for instrument in (self.instrument_order_map.keys()):
-#
-#             if order_id in self.instrument_order_map[instrument]:
-#                 print(f'Instrument_order_map: {self.order_map}')
-#                 order = self.instrument_order_map[instrument].pop(order_id)
-#                 self._delete_from_map(order, order_id)
-#                 print(f'Order {order_id} cancelled.')
-#                 print(f'Instrument_order_map: {self.order_map}')
-#                 return
-#         raise KeyError('Order ID unavailable.')
 
 
 if __name__ == '__main__':
