@@ -38,6 +38,9 @@ from collections import OrderedDict
 from settings import *
 
 class Order:
+    '''
+    Order with price, quantity, type, instrument, and optional contract details.
+    '''
     def __init__(self, order_dict):
         self.price = order_dict['price']
         self.quantity = order_dict['quantity']
@@ -56,6 +59,9 @@ class Order:
 
 
 class OrderBook:
+    '''
+    Represents an order book to manage and match buy/sell orders for financial instruments.
+    '''
     def __init__(self):
         self.buy_list = []
         self.sell_list = []
@@ -63,11 +69,18 @@ class OrderBook:
         self.trade_map = OrderedDict()
 
     def add_order(self, order, match_bool=False):
+        '''
+        Adds an order to the book.
+        If `match_bool` is True, attempts to match it first.
+        Otherwise, it will simply add the order to the book.
+        '''
         if match_bool:
             order = self.match_order(order, True)
 
         if order.price < 0:
             raise ValueError('Price must be positive.')
+        if order.quantity < 0:
+            raise ValueError('Quantity must be positive.')
         if order.type == 'buy':
             heapq.heappush(self.buy_list,
                            [order.price,
@@ -76,7 +89,6 @@ class OrderBook:
                             order.product,
                             order.exp_date,
                             order.instrument])
-            print(f'Buy list: {self.buy_list}')
         elif order.type == 'sell':
             heapq.heappush(self.sell_list,
                            [-order.price,
@@ -85,41 +97,56 @@ class OrderBook:
                             order.product,
                             order.exp_date,
                             order.instrument])
-            print(f'Sell list: {self.sell_list}')
         else:
             raise KeyError('Order type not available.')
 
         self._add_to_map(order)
 
     def _add_to_map(self, order):
+        '''
+        Adds the order to the internal order_map.
+        '''
         if order.type == 'sell':
             order.price *= -1
         self.order_map[order.order_id] = order
 
     def cancel_order(self, order_id):
+        '''
+        Cancels an existing order if no trade has occurred with it.
+        '''
         if order_id in self.order_map:
-            print(f'Order_map: {self.order_map}')
             order = self.order_map.pop(order_id)
             self._check_trade(order)
             self._delete_from_list(order, order_id)
             print(f'Order {order_id} cancelled.')
-            print(f'Order_map: {self.order_map}')
+
 
         else:
             raise KeyError('Order ID unavailable.')
 
     def _check_trade(self, order):
+        '''
+        Checks if the order has already been involved in a trade.
+        '''
         for local_trade in self.trade_map:
             if order.order_id in list(self.trade_map[local_trade].values()):
                 raise Warning('Not possible to cancel, trade has taken place.')
 
     def _delete_from_list(self, order, order_id):
+        '''
+        Removes the order from the corresponding list.
+        '''
         if order.type == 'buy':
             self.buy_list = [x for x in self.buy_list if x[1] != order_id]
         else:
             self.sell_list = [x for x in self.sell_list if x[1] != order_id]
 
     def _execute_match(self, order, add_bool):
+        '''
+        Core matching logic. Matches orders based on price, instrument, product.
+        Returns updated temp list and unmatched portion of the input order.
+        The variable `add_bool` defines whether the order should be added to the book or not.
+        '''
         temp = []
         if order.type == 'buy':
             temp_list = self.sell_list
@@ -162,12 +189,16 @@ class OrderBook:
                 self.trade_map[trade_id] = local_trade
             else:
                 temp.append(best_order)
-        if not add_bool and order.quantity > 0:
+        if not add_bool:
             heapq.heappush(temp_list, [-order.price, order.order_id, order.quantity])
             self._add_to_map(order)
         return temp_list, temp, order
 
     def match_order(self, order, from_add=False):
+        '''
+        Tries to match a given order against the existing orders in the book.
+        The variable `from_add` defines whether the match is executed before adding an order to a book.
+        '''
         if order.type == 'buy':
             self.sell_list, temp, order = self._execute_match(order, from_add)
             while temp:
@@ -179,48 +210,56 @@ class OrderBook:
         return order
 
     def print_order_book(self):
+        '''
+        Displays the current list of buy and sell orders.
+        '''
         print('BUY ORDERS:')
-        for price, _, quantity in sorted(self.buy_list):
-            if quantity > 0:
-                print(f'Price: {price}, Quantity: {quantity}')
-        print('SELL ORDERS:')
-        for price, _, quantity in sorted(self.sell_list):
-            if quantity > 0:
-                print(f'Price: {price}, Quantity: {quantity}')
+        for buy_order in sorted(self.buy_list):
+            if buy_order[2] > 0:
+                if buy_order[4] is None:
+                    print(f'Price: {buy_order[0]}, Quantity: {buy_order[2]}')
+                else:
+                    print(f'Product: {buy_order[3]}, Expiration: {str(buy_order[4])}, '
+                          f'Price: {buy_order[0]}, Quantity: {buy_order[2]}')
+
+        print('\nSELL ORDERS:')
+        for sell_order in sorted(self.sell_list):
+            if sell_order[2] > 0:
+                if sell_order[4] is None:
+                    print(f'Price: {sell_order[0]}, Quantity: {sell_order[2]}')
+                else:
+                    print(f'Product: {sell_order[3]}, Expiration: {str(sell_order[4])}, '
+                          f'Price: {sell_order[0]}, Quantity: {sell_order[2]}')
 
 
 if __name__ == '__main__':
-    print('Single Instrument')
-    # Single instrument
-    book = OrderBook()
+    print('Task 1')
+    book1 = OrderBook()
 
-    book.add_order(Order({"type": "SELL", "price": 102, "quantity": 5}), False)
-    book.add_order(Order({"type": "SELL", "price": 104, "quantity": 3}), False)
+    book1.add_order(Order({"type": "BUY", "price": 102, "quantity": 5}))
+    book1.add_order(Order({"type": "SELL", "price": 104, "quantity": 2}))
+    book1.add_order(Order({"type": "BUY", "price": 101, "quantity": 3}))
+    book1.add_order(Order({"type": "SELL", "price": 103, "quantity": 4}))
+    book1.print_order_book()
 
-    book.add_order(Order({"type": "BUY", "price": 109, "quantity": 1}), False)
-    book.add_order(Order({"type": "BUY", "price": 108, "quantity": 2}), False)
+    print('\nTask 2\n')
+    book2 = OrderBook()
 
-    book.add_order(Order({"type": "BUY", "price": 108, "quantity": 2}), True)
-    book.match_order(Order({"type": "BUY", "price": 102, "quantity": 2}), False)
+    book2.add_order(Order({"type": "BUY", "price": 102, "quantity": 5}))
+    book2.add_order(Order({"type": "SELL", "price": 104, "quantity": 2}))
+    book2.add_order(Order({"type": "BUY", "price": 101, "quantity": 3}))
+    book2.add_order(Order({"type": "SELL", "price": 103, "quantity": 4}))
+    book2.add_order(Order({"type": "SELL", "price": 102, "quantity": 1}), True)
+    book2.print_order_book()
 
-    book.cancel_order(list(book.order_map.keys())[0])
-    book.cancel_order(list(book.order_map.keys())[-1])
-    book.print_order_book()
+    print('\nTask 3\n')
+    book3 = OrderBook()
+    book3.add_order(Order({"type": "BUY", "price": 1500, "quantity": 2, "contract": "GCQ4 Comdty"}), True)
+    book3.add_order(Order({"type": "SELL", "price": 1500, "quantity": 2, "contract": "GCQ4 Comdty"}), True)
+    book3.add_order(Order({"type": "BUY", "price": 1550, "quantity": 3, "contract": "GCZ4 Comdty"}), True)
+    book3.add_order(Order({"type": "SELL", "price": 1550, "quantity": 1, "contract": "GCZ4 Comdty"}), True)
+    book3.print_order_book()
 
 
 
-    # print('Multiple instruments')
-    # # Multiple instruments
-    # book = InstrumentOrderBook()
-    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 1}))
-    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 5}))
-    # book.add_order_instrument(Order({"type": "BUY", "instrument": "EQ", "price": 102, "quantity": 6}))
-    # book.add_order_instrument(Order({"type": "BUY", "instrument": "FX", "price": 101, "quantity": 3}))
-    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 3}))
-    # book.add_order_instrument(Order({"type": "SELL", "instrument": "EQ", "price": 104, "quantity": 2}))
-    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 4}))
-    # book.add_order_instrument(Order({"type": "SELL", "instrument": "FX", "price": 103, "quantity": 7}))
-    # book.cancel_order_instrument(list(book.instrument_order_map['EQ'].keys())[0])
-    # book.cancel_order_instrument(list(book.instrument_order_map['FX'].keys())[0])
-    # book.print_order_book()
 
