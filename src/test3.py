@@ -100,3 +100,6 @@ class TestOrderBook(unittest.TestCase):
 
         self.assertEqual(bookobj.order_map[list(bookobj.order_map.keys())[1]].price, bookobj.sell_list[1][0])
         self.assertEqual(bookobj.order_map[list(bookobj.order_map.keys())[1]].quantity, bookobj.sell_list[1][2])
+
+if __name__ == '__main__':
+    unittest.main()

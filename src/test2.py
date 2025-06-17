@@ -1,5 +1,5 @@
 '''
-Tests designed for task 3.
+Tests designed for task 2.
 '''
 
 import unittest
@@ -134,3 +134,6 @@ class TestOrderBook(unittest.TestCase):
 
         self.assertEqual(bookobj.order_map[list(bookobj.order_map.keys())[1]].price, -102)
         self.assertEqual(bookobj.order_map[list(bookobj.order_map.keys())[1]].quantity, 5)
+
+if __name__ == '__main__':
+    unittest.main()
