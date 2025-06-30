@@ -54,45 +54,45 @@ class TestBonds(unittest.TestCase):
         '''
 
         '''
-        test_output = 972.33
+        test_output = 152186
 
-        bond_cf = Bonds(1000, 0.015, 0.012, 10)
+        bond_cf = Bonds(156517, 0.015, 0.012, 10)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_present_value()
-        self.assertEqual(round(test_result, 2), test_output)
+        self.assertEqual(int(test_result), test_output)
 
 
     def test_present_value_b(self):
         '''
 
         '''
-        test_output = 1000
+        test_output = 156517
 
-        bond_cf = Bonds(1000, 0.015, 0.015, 20)
+        bond_cf = Bonds(156517, 0.015, 0.015, 20)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_present_value()
-        self.assertEqual(round(test_result, 2), test_output)
+        self.assertEqual(int(test_result), test_output)
 
 
     def test_present_value_c(self):
         '''
 
         '''
-        test_output = 1120.08
+        test_output = 175311
 
-        bond_cf = Bonds(1000, 0.015, 0.02, 30)
+        bond_cf = Bonds(156517, 0.015, 0.02, 30)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_present_value()
 
-        self.assertEqual(round(test_result, 2), test_output)
+        self.assertEqual(int(test_result), test_output)
 
     def test_dv_a(self):
         '''
 
         '''
-        test_output = 0.9
+        test_output = 141.97
 
-        bond_cf = Bonds(1000, 0.015, 0.012, 10)
+        bond_cf = Bonds(156517, 0.015, 0.012, 10)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_dv()
 
@@ -102,9 +102,9 @@ class TestBonds(unittest.TestCase):
         '''
 
         '''
-        test_output = 1.72
+        test_output = 268.45
 
-        bond_cf = Bonds(1000, 0.015, 0.015, 20)
+        bond_cf = Bonds(156517, 0.015, 0.015, 20)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_dv()
 
@@ -114,9 +114,9 @@ class TestBonds(unittest.TestCase):
         '''
 
         '''
-        test_output = 2.57
+        test_output = 401.97
 
-        bond_cf = Bonds(1000, 0.015, 0.02, 30)
+        bond_cf = Bonds(156517, 0.015, 0.02, 30)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_dv()
 
@@ -128,7 +128,7 @@ class TestBonds(unittest.TestCase):
         '''
         test_output = 9.46
 
-        bond_cf = Bonds(1000, 0.015, 0.012, 10)
+        bond_cf = Bonds(156517, 0.015, 0.012, 10)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_modified_duration()
         self.assertEqual(round(test_result, 2), test_output)
@@ -139,7 +139,7 @@ class TestBonds(unittest.TestCase):
         '''
         test_output = 17.41
 
-        bond_cf = Bonds(1000, 0.015, 0.015, 20)
+        bond_cf = Bonds(156517, 0.015, 0.015, 20)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_modified_duration()
         self.assertEqual(round(test_result, 2), test_output)
@@ -150,7 +150,7 @@ class TestBonds(unittest.TestCase):
         '''
         test_output = 23.29
 
-        bond_cf = Bonds(1000, 0.015, 0.02, 30)
+        bond_cf = Bonds(156517, 0.015, 0.02, 30)
         bond_cf.calc_cash_flow()
         test_result = bond_cf.calc_bond_modified_duration()
         self.assertEqual(round(test_result, 2), test_output)
@@ -173,7 +173,7 @@ class TestHedge(unittest.TestCase):
         '''
 
         '''
-        test_output = 3452.18
+        test_output = 22.12
 
         hedge_bond = Hedge(mapping)
         best_bond, _ = hedge_bond.choose_bond(0.015)

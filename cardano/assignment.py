@@ -4,26 +4,29 @@ import numpy as np
 from settings import *
 
 class Liabilities:
-    def __init__(self, in_df, i_rate, t_maturity=1):
+    def __init__(self, in_df, i_rate=0, t_maturity=1):
         self.input_df = in_df
         self.interest_rate = i_rate
         self.time_maturity = t_maturity
         self.present_value = None
         self.modified_duration = None
 
-    def calculate_present_value(self):
+    def calculate_present_value(self, replace_interest=True):
         '''
-
+        Calculates present value, based on either a fixed interest rate (replace_interest = True)
+        or an existing interest rate column (replace_interest = False)
         '''
 
         self.input_df.drop([self.input_df.columns[0]], axis=1)
-        self.input_df['discount'] = 1 / (1 + self.interest_rate) ** self.input_df['Year']
+        if replace_interest:
+            self.input_df['interest_rate'] = self.interest_rate
+        self.input_df['discount'] = 1 / (1 + self.input_df['interest_rate']) ** self.input_df['Year']
         self.input_df['present_value'] = self.input_df['Cash flows'] * self.input_df['discount']
         self.present_value = round(sum(self.input_df.loc[:, 'present_value']), 2)
 
     def calculate_modified_duration(self):
         '''
-
+        Calculates modified duration of liability
         '''
         if 'present_value' not in self.input_df.columns:
             raise KeyError('Please calculate the present value.')
@@ -39,7 +42,7 @@ class DV:
 
     def calculate_dv(self):
         '''
-
+        Calculates DV01 for a given liability
         '''
         self.dv = self.int_ref - self.int_bp
 
@@ -54,7 +57,7 @@ class Bonds:
 
     def calc_cash_flow(self):
         '''
-
+        Estimates bond cash flow dataframe based on a fixed interest rate, coupon and maturity
         '''
         self.bond_cash_flow_df['Year'] = np.arange(1, self.maturity+1)
         self.bond_cash_flow_df['Cash flows'] = self.par * self.coupon
@@ -62,7 +65,7 @@ class Bonds:
 
     def calc_bond_present_value(self):
         '''
-
+        Calculates present value for a bond
         '''
         if self.bond_cash_flow_df.empty:
             raise ValueError('Input dataframe is empty.')
@@ -73,7 +76,7 @@ class Bonds:
 
     def calc_bond_dv(self):
         '''
-
+        Calculates DV01 for a bond
         '''
         if self.bond_cash_flow_df.empty:
             raise ValueError('Input dataframe is empty.')
@@ -89,7 +92,7 @@ class Bonds:
 
     def calc_bond_modified_duration(self):
         '''
-
+        Calculates modified duration for a bond
         '''
         if self.bond_cash_flow_df.empty:
             raise ValueError('Input dataframe is empty.')
@@ -106,7 +109,7 @@ class Hedge:
 
     def choose_bond(self, i_rate):
         '''
-
+        Chooses a bond do hedge, based on modified duration
         '''
         cash_flow = Liabilities(self.in_df, i_rate)
         cash_flow.calculate_present_value()
@@ -129,7 +132,7 @@ class Hedge:
 
     def hedge_risk(self, target, best_bond):
         '''
-
+        Calculates bond notional, based on the target hedge and the best bond
         '''
         cash_flow1 = Liabilities(self.in_df,0.015)
         cash_flow1.calculate_present_value()
@@ -151,6 +154,24 @@ class Hedge:
         total_hedge = dv_calc.dv * target
         notional = total_hedge / bond_dv
         return notional
+
+class HedgeAnalysis:
+    def __init__(self, in_df):
+        self.input_df = in_df
+
+
+    def calculate_hedge_ratio(self):
+        self.input_df['Cash flows'] = mapping['b']['par'] * mapping['b']['coupon']
+        liab1 = Liabilities(self.input_df)
+        liab1.calculate_present_value(replace_interest=False)
+        self.input_df['interest_rate'] += 0.0001
+        liab2 = Liabilities(self.input_df)
+        liab2.calculate_present_value(replace_interest=False)
+
+        liab_dv = DV(liab1.present_value, liab2.present_value)
+        liab_dv.calculate_dv()
+        return 0
+
 
 if __name__ == '__main__':
     # Task 1
@@ -238,3 +259,10 @@ if __name__ == '__main__':
     best_bond, _ = hedge_bond.choose_bond(0.015)
     notional = hedge_bond.hedge_risk(0.5, best_bond)
     print(f'Notional for bond b and 50% target: {notional}')
+
+    # Task 8
+    in_df = pd.read_excel(input_file, sheet_name=hedge_analysis, header=2)
+    in_df = in_df.rename(columns={'Days from now': 'Year', 'Interest rate': 'interest_rate'})
+    hedge_analysis = HedgeAnalysis(in_df)
+    hedge_analysis.calculate_hedge_ratio()
+    print()
